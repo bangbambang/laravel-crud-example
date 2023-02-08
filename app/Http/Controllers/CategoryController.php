@@ -73,12 +73,9 @@ class CategoryController extends Controller
 
         try {
             $category = Category::find($id);
-            if (array_key_exists('name', $validated)) $category->name = $validated['name'];
-            if (array_key_exists('enable', $validated)) $category->enable = $validated['enable'];
+            $category->name = $validated['name'];
+            $category->enable = $validated['enable'];
             $category->save();
-        } catch (Error $e) {
-            // empty catch block to prevent id enumeration and maintain idempotency
-        } finally {
             return response()->json(
                 [
                     'status' => 'OK',
@@ -86,6 +83,8 @@ class CategoryController extends Controller
                 ],
                 Response::HTTP_OK,
             );
+        } catch (Error $e) {
+            return response()->noContent(Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
     }
