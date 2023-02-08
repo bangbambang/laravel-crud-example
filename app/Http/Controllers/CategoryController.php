@@ -73,8 +73,8 @@ class CategoryController extends Controller
 
         try {
             $category = Category::find($id);
-            $category->name = $validated['name'];
-            $category->enable = $validated['enable'];
+            if (array_key_exists('name', $validated)) $category->name = $validated['name'];
+            if (array_key_exists('enable', $validated)) $category->enable = $validated['enable'];
             $category->save();
             return response()->json(
                 [

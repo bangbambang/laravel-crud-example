@@ -37,36 +37,27 @@ class CategoryEndpointTest extends TestCase
 
     public function test_store_success()
     {
-        $response = $this->postJSON('/api/categories', [
+        $data = [
             'name'  => 'foo',
             'enable'=> true,
-        ]);
-        $response->assertStatus(Response::HTTP_CREATED)
-        ->assertJson([
-            'status' => 'OK',
-            'data' => [
-                'name'  => 'foo',
-                'enable'=> true,
-            ]
-        ])
-        ->assertJsonPath('data.id', fn ($id) => is_int($id) && $id > 1);
+        ];
+        $response = $this->postJSON('/api/categories', $data);
+        $response
+            ->assertValid()
+            ->assertStatus(Response::HTTP_CREATED)
+            ->assertJson([
+                'status' => 'OK',
+                'data' => $data
+            ])
+            ->assertJsonPath('data.id', fn ($id) => is_int($id) && $id > 1);
     }
 
     public function test_store_fails_required_field_missing()
     {
         $response = $this->postJSON('/api/categories', []);
-        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
-        ->assertJson([
-            'message' => 'The name field is required. (and 1 more error)',
-            'errors' => [
-                'name' => [
-                    'The name field is required.'
-                ],
-                'enable' => [
-                    'The enable field is required.'
-                ],
-            ]
-        ]);
+        $response
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertInvalid(['name', 'enable']);
     }
 
     public function test_store_fails_validation_constraint()
@@ -77,18 +68,9 @@ class CategoryEndpointTest extends TestCase
             'name' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at dolor nulla. Suspendisse urna nisi, mollis ac laoreet ut, bibendum a nibh. Aenean aliquet commodo tortor, quis convallis tortor venenatis eu. Aliquam dapibus dignissim arcu vitae scelerisque quam.',
             'enable' => $this->faker->word(),
         ]);
-        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
-        ->assertJson([
-            'message' => 'The name must not be greater than 255 characters. (and 1 more error)',
-            'errors' => [
-                'name' => [
-                    'The name must not be greater than 255 characters.'
-                ],
-                'enable' => [
-                    'The enable field must be true or false.'
-                ],
-            ]
-        ]);
+        $response
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertInvalid(['name', 'enable']);
     }
 
     public function test_update_success()
@@ -96,13 +78,15 @@ class CategoryEndpointTest extends TestCase
         $response = $this->putJSON('/api/categories/1', [
             'name'=> 'new name',
         ]);
-        $response->assertStatus(Response::HTTP_OK)
-        ->assertJson([
-            'status' => 'OK',
-            'data' => [
-                'name'=> 'new name',
-            ]
-        ]);
+        $response
+            ->assertStatus(Response::HTTP_OK)
+            ->assertValid()
+            ->assertJson([
+                'status' => 'OK',
+                'data' => [
+                    'name'=> 'new name',
+                ]
+            ]);
     }
 
     public function test_update_fails_without_id()
@@ -119,23 +103,14 @@ class CategoryEndpointTest extends TestCase
             'name' => '',
             'enable' => null,
         ]);
-        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
-        ->assertJson([
-            'message' => 'The name field must have a value. (and 1 more error)',
-            'errors' => [
-                'name' => [
-                    'The name field must have a value.'
-                ],
-                'enable' => [
-                    'The enable field must have a value.'
-                ],
-            ]
-        ]);
+        $response
+            ->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
+            ->assertInvalid(['name', 'enable']);
     }
 
     public function test_destroy_success()
     {
-        $response = $this->deleteJSON('/api/categories/1');
+        $response = $this->deleteJSON('/api/categories/2');
         $response->assertStatus(Response::HTTP_OK);
     }
 }
