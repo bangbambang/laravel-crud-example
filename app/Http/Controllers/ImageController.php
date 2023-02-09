@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Category;
+use App\Models\Image;
 
-class CategoryController extends Controller
+class ImageController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,7 +15,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return Category::where('enable', true)->get();
+        return Image::where('enable', true)->get();
     }
 
     /**
@@ -29,18 +28,20 @@ class CategoryController extends Controller
     {
         $validated = $this->validate($request, [
             'name'  => 'required|max:255',
+            'file'  => 'required|max:255',
             'enable'=> 'required|boolean',
         ]);
 
-        $category = new Category;
-        $category->name = $validated['name'];
-        $category->enable = $validated['enable'];
-        $category->save();
+        $image = new Image;
+        $image->name = $validated['name'];
+        $image->file = $validated['file'];
+        $image->enable = $validated['enable'];
+        $image->save();
 
         return response()->json(
             [
                 'status' => 'OK',
-                'data'   => $category,
+                'data'   => $image,
             ],
             Response::HTTP_CREATED,
         );
@@ -54,7 +55,7 @@ class CategoryController extends Controller
      */
     public function show($id)
     {
-        return Category::findOrFail($id);
+        return Image::findOrFail($id);
     }
 
     /**
@@ -68,15 +69,17 @@ class CategoryController extends Controller
     {
         $validated = $this->validate($request, [
             'name'  => 'filled|max:255',
+            'file'  => 'filled|max:255',
             'enable'=> 'filled|boolean',
         ]);
 
         try {
-            $category = Category::findOrFail($id);
-            if (array_key_exists('name', $validated)) $category->name = $validated['name'];
-            if (array_key_exists('enable', $validated)) $category->enable = $validated['enable'];
-            $category->save();
-            return response()->json(
+            $image = Image::findOrFail($id);
+            if (array_key_exists('name', $validated)) $image->name = $validated['name'];
+            if (array_key_exists('file', $validated)) $image->file = $validated['file'];
+            if (array_key_exists('enable', $validated)) $image->enable = $validated['enable'];
+            $image->save();
+                return response()->json(
                 [
                     'status' => 'OK',
                     'data'   => $validated,
@@ -97,9 +100,9 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         try {
-            $category = Category::find($id);
-            $category->products()->detach();
-            $category->delete();
+            $image = Image::findOrFail($id);
+            $image->products()->detach();
+            $image->delete();
         } catch (Error $e) {
             // empty catch block to prevent id enumeration and maintain idempotency
         } finally {
